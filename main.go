@@ -28,7 +28,11 @@ func init() {
 	flag.Parse()
 }
 func main() {
-	tale, err := NewTableBook(site, WithTimeOutOption(timeout), WithLoginOption(username, password))
+	tale, err := NewTableBook(site,
+		WithTimeOutOption(timeout),
+		WithLoginOption(username, password),
+		WithUserAgentOption(userAgent),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
