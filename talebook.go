@@ -141,7 +141,11 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 			return wrapperTimeOutError(err)
 		}
 		defer response.Body.Close()
-		filepath := filepath.Join(dir, filename(response))
+		name := filename(response)
+		if name == "" {
+			name = b.Book.Title + "." + strings.ToLower(file.Format)
+		}
+		filepath := filepath.Join(dir, name)
 		if info, err := os.Stat(filepath); err == nil {
 			if file.Size == info.Size() {
 				return os.ErrExist
