@@ -36,7 +36,7 @@ func main() {
 	for {
 		book, err := tale.Next()
 		if err != nil {
-			log.Printf("%s %s [skiped]", site, err.Error())
+			log.Printf("%s [skiped]", err.Error())
 			if errors.Is(err, NO_MORE_BOOK_ERROR) {
 				os.Exit(0)
 			}
