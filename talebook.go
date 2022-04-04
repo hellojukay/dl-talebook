@@ -90,7 +90,7 @@ type Book struct {
 		Isbn          string      `json:"isbn"`
 		Files         []struct {
 			Format string `json:"format"`
-			Size   int    `json:"size"`
+			Size   int64  `json:"size"`
 			Href   string `json:"href"`
 		} `json:"files"`
 		IsPublic bool   `json:"is_public"`
@@ -101,7 +101,7 @@ type Book struct {
 }
 
 func (b Book) String() string {
-	var size int
+	var size int64
 	for _, file := range b.Book.Files {
 		size = size + file.Size
 	}
@@ -139,8 +139,17 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 			return err
 		}
 		defer response.Body.Close()
-		file := filepath.Join(dir, filename(response))
-		fh, err := os.Create(file)
+		filepath := filepath.Join(dir, filename(response))
+		if info, err := os.Stat(filepath); err == nil {
+			if file.Size == info.Size() {
+				return os.ErrExist
+			} else {
+				if err = os.Remove(filepath); err != nil {
+					return err
+				}
+			}
+		}
+		fh, err := os.Create(filepath)
 		if err != nil {
 			return err
 		}
