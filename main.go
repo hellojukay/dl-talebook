@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
+	"os"
 	"time"
 )
 
@@ -35,6 +37,9 @@ func main() {
 		book, err := tale.Next()
 		if err != nil {
 			log.Printf("%s %s [skiped]", site, err.Error())
+			if errors.Is(err, NO_MORE_BOOK_ERROR) {
+				os.Exit(0)
+			}
 			continue
 		}
 		log.Printf("downloading %s", book.String())

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,10 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+)
+
+var (
+	NO_MORE_BOOK_ERROR = errors.New("there is no more books")
 )
 
 type ServerInfo struct {
@@ -110,7 +115,7 @@ func (b Book) String() string {
 func (tale *TaleBook) Next() (*Book, error) {
 	tale.index++
 	if tale.index > tale.ServerInfo.Sys.Books {
-		return nil, fmt.Errorf("there is no more books")
+		return nil, NO_MORE_BOOK_ERROR
 	}
 	var api = urlJoin(tale.api, "api", "book", fmt.Sprintf("%d", tale.index))
 	if err := tale.check(api); err != nil {
