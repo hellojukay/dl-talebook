@@ -1,5 +1,5 @@
 # dl-talebook
-Downloading books from [talebook server](https://github.com/talebook/talebook) 。
+Downloading books from [talebook server](https://github.com/talebook/talebook) .
 
 # Demo
 ![demo](demo.png)
