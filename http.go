@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"mime"
+	"net"
 	"net/http"
 	"strings"
 )
@@ -32,4 +34,16 @@ func urlJoin(base string, pathes ...string) string {
 		}
 	}
 	return base
+}
+
+func wrapperTimeOutError(err error) error {
+	switch e := err.(type) {
+	case net.Error:
+		if e.Timeout() {
+			return fmt.Errorf("timeout")
+		}
+		return err
+	default:
+		return err
+	}
 }

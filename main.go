@@ -34,12 +34,12 @@ func main() {
 	for {
 		book, err := tale.Next()
 		if err != nil {
-			log.Printf("%s %s skiped", site, err.Error())
+			log.Printf("%s %s [skiped]", site, err.Error())
 			continue
 		}
 		log.Printf("downloading %s", book.String())
 		if err = tale.Download(book, dir); err != nil {
-			log.Printf("%s %s skiped", book.Book.Title, err)
+			log.Printf("%s %s [skiped]", book.Book.Title, err)
 		}
 	}
 }

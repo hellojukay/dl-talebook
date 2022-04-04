@@ -136,7 +136,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 	for _, file := range b.Book.Files {
 		response, err := tale.client.Get(urlJoin(tale.api, file.Href))
 		if err != nil {
-			return err
+			return wrapperTimeOutError(err)
 		}
 		defer response.Body.Close()
 		filepath := filepath.Join(dir, filename(response))
@@ -156,7 +156,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		_, err = io.Copy(fh, response.Body)
 		if err != nil {
 			fh.Close()
-			return err
+			return wrapperTimeOutError(err)
 		}
 		fh.Close()
 	}
@@ -166,7 +166,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 func (tale *TaleBook) check(api string) error {
 	response, err := tale.client.Get(api)
 	if err != nil {
-		return err
+		return wrapperTimeOutError(err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
@@ -227,7 +227,7 @@ func (tb *TaleBook) getInfo() {
 	api := urlJoin(tb.api, "api/user/info")
 	req, err := http.NewRequest(http.MethodGet, api, nil)
 	if err != nil {
-		tb.err = err
+		tb.err = wrapperTimeOutError(err)
 		return
 	}
 	if tb.userAgent != "" {
