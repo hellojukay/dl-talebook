@@ -14,35 +14,104 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
+type ServerInfo struct {
+	Err string `json:"err"`
+	Cdn string `json:"cdn"`
+	Sys struct {
+		Books      int    `json:"books"`
+		Tags       int    `json:"tags"`
+		Authors    int    `json:"authors"`
+		Publishers int    `json:"publishers"`
+		Series     int    `json:"series"`
+		Mtime      string `json:"mtime"`
+		Users      int    `json:"users"`
+		Active     int    `json:"active"`
+		Version    string `json:"version"`
+		Title      string `json:"title"`
+		Socials    []struct {
+			Text  string `json:"text"`
+			Value string `json:"value"`
+			Help  bool   `json:"help"`
+			Link  string `json:"link"`
+		} `json:"socials"`
+		Friends []struct {
+			Text string `json:"text"`
+			Href string `json:"href"`
+		} `json:"friends"`
+		Footer string `json:"footer"`
+		Allow  struct {
+			Register bool `json:"register"`
+			Download bool `json:"download"`
+			Push     bool `json:"push"`
+			Read     bool `json:"read"`
+		} `json:"allow"`
+	} `json:"sys"`
+	User struct {
+		Avatar      string `json:"avatar"`
+		IsLogin     bool   `json:"is_login"`
+		IsAdmin     bool   `json:"is_admin"`
+		Nickname    string `json:"nickname"`
+		Email       string `json:"email"`
+		KindleEmail string `json:"kindle_email"`
+		Extra       struct {
+		} `json:"extra"`
+	} `json:"user"`
+	Msg string `json:"msg"`
+}
 type TaleBook struct {
-	api    string
-	index  int
-	client *http.Client
-	err    error
+	api        string
+	index      int
+	client     *http.Client
+	err        error
+	userAgent  string
+	ServerInfo ServerInfo
 }
 
 type Book struct {
-	ERROR string `json:"err"`
-	Book  struct {
-		Title string `json:"title"`
-		FILES []struct {
+	Err          string `json:"err"`
+	KindleSender string `json:"kindle_sender"`
+	Book         struct {
+		ID            int         `json:"id"`
+		Title         string      `json:"title"`
+		Rating        int         `json:"rating"`
+		CountVisit    int         `json:"count_visit"`
+		CountDownload int         `json:"count_download"`
+		Timestamp     string      `json:"timestamp"`
+		Pubdate       string      `json:"pubdate"`
+		Collector     string      `json:"collector"`
+		Authors       []string    `json:"authors"`
+		Author        string      `json:"author"`
+		Tags          []string    `json:"tags"`
+		AuthorSort    string      `json:"author_sort"`
+		Publisher     string      `json:"publisher"`
+		Comments      string      `json:"comments"`
+		Series        interface{} `json:"series"`
+		Language      interface{} `json:"language"`
+		Isbn          string      `json:"isbn"`
+		Files         []struct {
 			Format string `json:"format"`
-			Size   int64  `json:"size"`
+			Size   int    `json:"size"`
 			Href   string `json:"href"`
 		} `json:"files"`
-		Authors []string `json:"authors"`
+		IsPublic bool   `json:"is_public"`
+		IsOwner  bool   `json:"is_owner"`
+		Img      string `json:"img"`
 	} `json:"book"`
+	Msg string `json:"msg"`
 }
 
 func (b Book) String() string {
-	var size int64
-	for _, file := range b.Book.FILES {
+	var size int
+	for _, file := range b.Book.Files {
 		size = size + file.Size
 	}
 	return fmt.Sprintf("%s-- [%s] %s", b.Book.Title, strings.Join(b.Book.Authors, ","), humanize.Bytes(uint64(size)))
 }
 func (tale *TaleBook) Next() (*Book, error) {
 	tale.index++
+	if tale.index > tale.ServerInfo.Sys.Books {
+		return nil, fmt.Errorf("there is no more books")
+	}
 	var api = urlJoin(tale.api, "api", "book", fmt.Sprintf("%d", tale.index))
 	if err := tale.check(api); err != nil {
 		return nil, err
@@ -57,14 +126,14 @@ func (tale *TaleBook) Next() (*Book, error) {
 	if err = decoder.Decode(&book); err != nil {
 		return nil, err
 	}
-	if book.ERROR != "ok" {
-		return nil, fmt.Errorf("%s %s", api, book.ERROR)
+	if book.Err != "ok" {
+		return nil, fmt.Errorf("%s %s", api, book.Err)
 	}
 	return &book, nil
 }
 
 func (tale *TaleBook) Download(b *Book, dir string) error {
-	for _, file := range b.Book.FILES {
+	for _, file := range b.Book.Files {
 		response, err := tale.client.Get(urlJoin(tale.api, file.Href))
 		if err != nil {
 			return err
@@ -113,8 +182,12 @@ func NewTableBook(site string, opstions ...func(*TaleBook)) (*TaleBook, error) {
 	}
 	for _, option := range opstions {
 		option(tb)
+		if tb.err != nil {
+			return nil, err
+		}
 	}
-	return tb, nil
+	tb.getInfo()
+	return tb, tb.err
 }
 
 func WithTimeOutOption(timeout time.Duration) func(*TaleBook) {
@@ -123,7 +196,12 @@ func WithTimeOutOption(timeout time.Duration) func(*TaleBook) {
 	}
 }
 
-func WithLogin(user string, password string) func(*TaleBook) {
+func WithUserAgentOption(uagent string) func(*TaleBook) {
+	return func(tb *TaleBook) {
+		tb.userAgent = userAgent
+	}
+}
+func WithLoginOption(user string, password string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		api := urlJoin(tb.api, "api/user/sign_in")
 		respnose, err := tb.client.PostForm(api, map[string][]string{
@@ -133,4 +211,30 @@ func WithLogin(user string, password string) func(*TaleBook) {
 		tb.err = err
 		defer respnose.Body.Close()
 	}
+}
+
+func (tb *TaleBook) getInfo() {
+
+	api := urlJoin(tb.api, "api/user/info")
+	req, err := http.NewRequest(http.MethodGet, api, nil)
+	if err != nil {
+		tb.err = err
+		return
+	}
+	if tb.userAgent != "" {
+		req.Header.Set("user-agent", tb.userAgent)
+	}
+	respnose, err := tb.client.Do(req)
+	if err != nil {
+		tb.err = err
+		return
+	}
+	defer respnose.Body.Close()
+	var info ServerInfo
+	decoder := json.NewDecoder(respnose.Body)
+	if err = decoder.Decode(&info); err != nil {
+		tb.err = err
+		return
+	}
+	tb.ServerInfo = info
 }
