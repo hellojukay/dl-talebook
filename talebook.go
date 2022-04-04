@@ -118,9 +118,6 @@ func (tale *TaleBook) Next() (*Book, error) {
 		return nil, NO_MORE_BOOK_ERROR
 	}
 	var api = urlJoin(tale.api, "api", "book", fmt.Sprintf("%d", tale.index))
-	if err := tale.check(api); err != nil {
-		return nil, err
-	}
 	response, err := tale.client.Get(api)
 	if err != nil {
 		return nil, err
@@ -164,18 +161,6 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 			return wrapperTimeOutError(err)
 		}
 		fh.Close()
-	}
-	return nil
-}
-
-func (tale *TaleBook) check(api string) error {
-	response, err := tale.client.Get(api)
-	if err != nil {
-		return wrapperTimeOutError(err)
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf(" %s", response.Status)
 	}
 	return nil
 }
