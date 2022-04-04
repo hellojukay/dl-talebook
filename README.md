@@ -15,7 +15,7 @@ go install github.com/hellojukay/dl-talebook@latest
 hellojukay@local dl-talebook (main) $ ./dl-talebook -h
 Usage of ./dl-talebook:
   -c int
-    	maximum number of concurrent download tasks allowed per second (default 5)
+    	maximum number of concurrent download tasks allowed per second (default 1)
   -dir string
     	data dir (default "./")
   -password string

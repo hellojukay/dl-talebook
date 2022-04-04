@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -136,9 +137,13 @@ func (tale *TaleBook) Next() (*Book, error) {
 
 func (tale *TaleBook) Download(b *Book, dir string) error {
 	for _, file := range b.Book.Files {
-		response, err := tale.client.Get(urlJoin(tale.api, file.Href))
+		downloadURL := urlJoin(tale.api, file.Href)
+		response, err := tale.client.Get(downloadURL)
 		if err != nil {
 			return wrapperTimeOutError(err)
+		}
+		if response.StatusCode != http.StatusOK {
+			return fmt.Errorf("%s %s", downloadURL, response.Status)
 		}
 		defer response.Body.Close()
 		name := filename(response)
@@ -150,6 +155,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 			if file.Size == info.Size() {
 				return os.ErrExist
 			} else {
+				log.Printf("expected file size %d, actual file size %d, so removing %s, ", file.Size, info.Size(), filepath)
 				if err = os.Remove(filepath); err != nil {
 					return err
 				}

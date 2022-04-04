@@ -18,7 +18,7 @@ var (
 	timeout    = time.Duration(10) * time.Second
 	username   = ""
 	password   = ""
-	concurrent = 5
+	concurrent = 1
 )
 
 func init() {
@@ -54,11 +54,12 @@ func main() {
 			}
 			continue
 		}
-		log.Printf("downloading %s", book.String())
 		go func() {
 			if err = tale.Download(book, dir); err != nil {
 				log.Printf("%s %s [skiped]", book.Book.Title, err)
+				return
 			}
+			log.Printf("downloading %s successed", book.String())
 		}()
 	}
 }
