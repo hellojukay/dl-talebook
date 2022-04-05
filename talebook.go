@@ -307,6 +307,10 @@ func (tb *TaleBook) getInfo() {
 		return
 	}
 	defer respnose.Body.Close()
+	if respnose.StatusCode != http.StatusOK {
+		tb.err = fmt.Errorf("%s %s", api, respnose.Status)
+		return
+	}
 	var info ServerInfo
 	decoder := json.NewDecoder(respnose.Body)
 	if err = decoder.Decode(&info); err != nil {
