@@ -51,7 +51,7 @@ func NewDownloadConfig() *config {
 		InitialBookID: 1,
 		Formats:       []string{"EPUB", "MOBI", "PDF"},
 		Threads:       1,
-		Timeout:       10 * time.Second,
+		Timeout:       10 * time.Minute,
 		Retry:         5,
 		UserAgent:     DefaultUserAgent,
 		Rename:        false,
@@ -182,9 +182,7 @@ func login(username, password, website, userAgent, cookiePath string, client *ht
 	}
 
 	log.Println("Login success. Save cookies into file.")
-
-	// Save cookies into file.
-	return SaveCookies(client.Jar, cookiePath)
+	return nil
 }
 
 // lastBookID will return the last available book ID.

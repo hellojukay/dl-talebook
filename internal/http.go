@@ -78,29 +78,9 @@ func WrapTimeOut(err error) error {
 	return err
 }
 
-// SaveCookies would save all the cookies into a file.
-func SaveCookies(jar http.CookieJar, path string) error {
-	// Create or open the file.
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0644)
-	if err != nil {
-		return err
-	}
-
-	if c, ok := jar.(*cookiejar.Jar); ok {
-		// Save cookies to files.
-		if _, err = c.WriteTo(file); err != nil {
-			return err
-		}
-	} else {
-		return errors.New("illegal types for given cookiejar instance")
-	}
-
-	return nil
-}
-
 // CreateCookies would load the cookies from file if it exists.
 func CreateCookies(path string) (http.CookieJar, error) {
-	jar, err := cookiejar.New(&cookiejar.Options{})
+	jar, err := cookiejar.New(&cookiejar.Options{AutoWritePath: path})
 	if err != nil {
 		return nil, err
 	}
