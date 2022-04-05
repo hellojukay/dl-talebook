@@ -1,17 +1,25 @@
 package cmd
 
 import (
-	"github.com/hellojukay/dl-talebook/internal"
-	"github.com/spf13/cobra"
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/spf13/cobra"
+
+	"github.com/hellojukay/dl-talebook/internal"
 )
 
 // Used for register account on talebook website.
-var (
-	email = ""
-)
+type registerConfig struct {
+	website  string
+	username string
+	password string
+	email    string
+}
+
+// Arguments instance.
+var regConf = registerConfig{}
 
 // registerCmd represents the register command
 var registerCmd = &cobra.Command{
@@ -28,10 +36,10 @@ func init() {
 	rootCmd.AddCommand(registerCmd)
 
 	// Add flags for use info.
-	registerCmd.Flags().StringVarP(&website, "website", "w", "", "The talebook website.")
-	registerCmd.Flags().StringVarP(&username, "username", "u", "", "The account login name.")
-	registerCmd.Flags().StringVarP(&password, "password", "p", "", "The account password.")
-	registerCmd.Flags().StringVarP(&email, "email", "e", "", "The account email.")
+	registerCmd.Flags().StringVarP(&regConf.website, "website", "w", "", "The talebook website.")
+	registerCmd.Flags().StringVarP(&regConf.username, "username", "u", "", "The account login name.")
+	registerCmd.Flags().StringVarP(&regConf.password, "password", "p", "", "The account password.")
+	registerCmd.Flags().StringVarP(&regConf.email, "email", "e", "", "The account email.")
 
 	_ = registerCmd.MarkFlagRequired("website")
 	_ = registerCmd.MarkFlagRequired("username")
@@ -41,12 +49,12 @@ func init() {
 
 // register will create account on given website
 func register() {
-	website = internal.GenerateUrl(website, "/api/user/sign_up")
+	website := internal.GenerateUrl(regConf.website, "/api/user/sign_up")
 	values := url.Values{
-		"username": {username},
-		"password": {password},
-		"nickname": {username},
-		"email":    {email},
+		"username": {regConf.username},
+		"password": {regConf.password},
+		"nickname": {regConf.username},
+		"email":    {regConf.email},
 	}
 
 	form, err := http.PostForm(website, values)

@@ -23,6 +23,8 @@ cpu_profile
 *.dll
 *.so
 *.dylib
+dl-talebook
+dl-talebook.*
 
 # Go releaser
 dist/

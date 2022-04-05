@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/bits-and-blooms/bitset v1.2.2
-	github.com/dustin/go-humanize v1.0.0
 	github.com/spf13/cobra v1.4.0
 )
 

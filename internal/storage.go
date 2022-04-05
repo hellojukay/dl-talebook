@@ -3,9 +3,10 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"github.com/bits-and-blooms/bitset"
 	"os"
 	"sync"
+
+	"github.com/bits-and-blooms/bitset"
 )
 
 const NoBookToDownload = -1
@@ -56,7 +57,7 @@ func NewStorage(start, size int64, path string) (*storage, error) {
 			progress = bitset.New(uint(size))
 			startIndex(progress)
 
-			if err = saveStorage(file, progress); err != nil {
+			if err := saveStorage(file, progress); err != nil {
 				return nil, err
 			}
 		}
@@ -132,4 +133,9 @@ func (storage *storage) SaveBookID(bookID int64) error {
 		defer func() { _ = file.Close() }()
 		return saveStorage(file, storage.progress)
 	}
+}
+
+// Finished would tell the called whether all the books have downloaded.
+func (storage *storage) Finished() bool {
+	return storage.progress.Count() == storage.progress.Len()
 }

@@ -1,7 +1,7 @@
 # dl-talebook
 
-Downloading books from [talebook server](https://github.com/talebook/talebook),
-inspired by syhily's [gist](https://gist.github.com/syhily/9feb936bcaebf2beec567733810f4666).
+Downloading books from [talebook server](https://github.com/talebook/talebook), inspired by
+syhily's [gist](https://gist.github.com/syhily/9feb936bcaebf2beec567733810f4666).
 
 ## Feature
 
@@ -20,10 +20,10 @@ go install github.com/hellojukay/dl-talebook@latest
 
 Execute `dl-talebook -h` to see how to use this download tools.
 
-### Register account.
+### Register account
 
 ```text
-→ ./dl-talebook register -h
+→ dl-talebook register -h
 Some talebook website need a user account for downloading books.
 You can use this register command for creating account.
 
@@ -38,10 +38,10 @@ Flags:
   -w, --website string    The talebook website.
 ```
 
-### Download book.
+### Download book
 
 ```text
-→ ./dl-talebook download -h
+→ dl-talebook download -h
 Download the book from talebook.
 
 Usage:
@@ -49,7 +49,7 @@ Usage:
 
 Flags:
   -c, --cookie string       The cookie file name you want to use, it would be saved under the download directory. (default "cookies")
-  -d, --download string     The book directory you want to use, default would be current working directory. (default "/Users/Yufan/Downloads/dl-talebook/dist/dl-talebook_darwin_amd64")
+  -d, --download string     The book directory you want to use, default would be current working directory. (default "")
   -f, --format strings      The file formats you want to download. (default [EPUB,MOBI,PDF])
   -h, --help                help for download
   -i, --initial int         The book id you want to start download. It should exceed 0. (default 1)
