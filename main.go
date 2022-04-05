@@ -14,6 +14,7 @@ import (
 var (
 	userAgent  = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`
 	site       = `https://book.codefine.site:6870/`
+	cookie     = ""
 	dir        = "./"
 	timeout    = time.Duration(10) * time.Second
 	username   = ""
@@ -25,6 +26,7 @@ var (
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
+	flag.StringVar(&cookie, "cookie", cookie, "http cookie")
 	flag.StringVar(&username, "username", username, "username")
 	flag.StringVar(&password, "password", password, "password")
 	flag.StringVar(&site, "site", site, "tabebook web site")
@@ -39,6 +41,7 @@ func init() {
 func main() {
 	tale, err := NewTableBook(site,
 		WithVerboseOption(verbose),
+		WithUserCookieOption(cookie),
 		WithUserAgentOption(userAgent),
 		WithTimeOutOption(timeout),
 		WithLoginOption(username, password),

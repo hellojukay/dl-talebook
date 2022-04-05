@@ -71,6 +71,7 @@ type TaleBook struct {
 	client     *http.Client
 	err        error
 	userAgent  string
+	cookie     string
 	verbose    bool
 	ServerInfo ServerInfo
 }
@@ -124,11 +125,21 @@ func (tale *TaleBook) Next() (*Book, error) {
 	if tale.verbose {
 		log.Printf("feth book from %s", api)
 	}
-	response, err := tale.client.Get(api)
+	req, err := http.NewRequest(http.MethodGet, api, nil)
+	if tale.userAgent != "" {
+		req.Header.Set("user-agent", tale.userAgent)
+	}
+	if tale.cookie != "" {
+		req.Header.Set("cookie", tale.cookie)
+	}
+	response, err := tale.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s", response.Status)
+	}
 	var book Book
 	decoder := json.NewDecoder(response.Body)
 	if err = decoder.Decode(&book); err != nil {
@@ -143,7 +154,17 @@ func (tale *TaleBook) Next() (*Book, error) {
 func (tale *TaleBook) Download(b *Book, dir string) error {
 	for _, file := range b.Book.Files {
 		downloadURL := urlJoin(tale.api, file.Href)
-		response, err := tale.client.Get(downloadURL)
+		req, err := http.NewRequest(http.MethodGet, downloadURL, nil)
+		if err != nil {
+			return err
+		}
+		if tale.cookie != "" {
+			req.Header.Set("cookie", tale.cookie)
+		}
+		if tale.userAgent != "" {
+			req.Header.Set("user-agent", tale.userAgent)
+		}
+		response, err := tale.client.Do(req)
 		if err != nil {
 			return wrapperTimeOutError(err)
 		}
@@ -222,19 +243,26 @@ func WithUserAgentOption(uagent string) func(*TaleBook) {
 		tb.userAgent = userAgent
 	}
 }
+func WithUserCookieOption(cookie string) func(*TaleBook) {
+	return func(tb *TaleBook) {
+		if cookie != "" {
+			tb.cookie = cookie
+		}
+	}
+}
 func WithLoginOption(user string, password string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		if (user != "") && (password != "") {
 
+			data := url.Values{
+				"username": []string{user},
+				"password": []string{password},
+			}
 			api := urlJoin(tb.api, "api/user/sign_in")
-			req, err := http.NewRequest(http.MethodPost, api, nil)
+			req, err := http.NewRequest(http.MethodPost, api, strings.NewReader(data.Encode()))
 			if err != nil {
 				tb.err = fmt.Errorf("login failed %w", err)
 				return
-			}
-			req.PostForm = url.Values{
-				"username": []string{user},
-				"password": []string{password},
 			}
 
 			if tb.userAgent != "" {
@@ -278,7 +306,7 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 				return
 			}
 			if tb.verbose {
-				log.Printf("login %s", result.Err)
+				log.Printf("login %s %s", result.Err, result.Msg)
 				return
 			}
 		}
@@ -297,6 +325,9 @@ func (tb *TaleBook) getInfo() {
 	if err != nil {
 		tb.err = wrapperTimeOutError(err)
 		return
+	}
+	if tb.cookie != "" {
+		req.Header.Set("cookie", tb.cookie)
 	}
 	if tb.userAgent != "" {
 		req.Header.Set("user-agent", tb.userAgent)
