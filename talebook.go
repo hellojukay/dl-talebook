@@ -161,7 +161,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		filepath := filepath.Join(dir, name)
 		if info, err := os.Stat(filepath); err == nil {
 			if file.Size == info.Size() {
-				return os.ErrExist
+				return fmt.Errorf("%s %w", filepath, os.ErrExist)
 			} else {
 				log.Printf("expected file size %d, actual file size %d, so removing %s, ", file.Size, info.Size(), filepath)
 				if err = os.Remove(filepath); err != nil {
