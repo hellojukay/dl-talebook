@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	userAgent  = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
+	userAgent  = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`
 	site       = `https://book.codefine.site:6870/`
 	dir        = "./"
 	timeout    = time.Duration(10) * time.Second
@@ -24,6 +24,7 @@ var (
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	flag.IntVar(&concurrent, "c", concurrent, "maximum number of concurrent download tasks allowed per second")
 	flag.StringVar(&username, "username", username, "username")
 	flag.StringVar(&password, "password", password, "password")
@@ -45,8 +46,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	log.Printf("%d books retrieved on server %s", tale.ServerInfo.Sys.Books, site)
 	l := rate.NewLimiter(rate.Limit(concurrent), concurrent)
+
 	for {
 		// 限制速度
 		l.Wait(context.Background())
@@ -58,6 +61,7 @@ func main() {
 			}
 			continue
 		}
+
 		go func() {
 			if err = tale.Download(book, dir); err != nil {
 				log.Printf("%s %s [skiped]", book.Book.Title, err)

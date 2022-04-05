@@ -147,10 +147,13 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		if err != nil {
 			return wrapperTimeOutError(err)
 		}
+
+		defer response.Body.Close()
+
 		if response.StatusCode != http.StatusOK {
 			return fmt.Errorf("%s %s", downloadURL, response.Status)
 		}
-		defer response.Body.Close()
+
 		name := filename(response)
 		if name == "" {
 			name = b.Book.Title + "." + strings.ToLower(file.Format)
@@ -190,17 +193,21 @@ func NewTableBook(site string, opstions ...func(*TaleBook)) (*TaleBook, error) {
 		return nil, err
 	}
 	client.Jar = jar
+
 	tb := &TaleBook{
 		api:    site,
 		client: &client,
 	}
+
 	for _, option := range opstions {
 		option(tb)
 		if tb.err != nil {
 			return nil, tb.err
 		}
 	}
+
 	tb.getInfo()
+
 	return tb, tb.err
 }
 
@@ -229,22 +236,30 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 				"username": []string{user},
 				"password": []string{password},
 			}
+
 			if tb.userAgent != "" {
 				req.Header.Set("user-agent", tb.userAgent)
 			}
-			req.Header.Set("referer", tb.api)
+			req.Header.Set("referer", urlJoin(tb.api, "login"))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			respnose, err := tb.client.Do(req)
+
 			if tb.verbose {
 				log.Printf("login %s username: %s password: %s", api, username, password)
 			}
 
+			respnose, err := tb.client.Do(req)
 			if err != nil {
 				tb.err = fmt.Errorf("login failed %w", err)
 				return
 			}
 			defer respnose.Body.Close()
-
+			if respnose.StatusCode != http.StatusOK {
+				if tb.verbose {
+					io.Copy(os.Stderr, respnose.Body)
+				}
+				tb.err = fmt.Errorf("%s %s", api, respnose.Status)
+				return
+			}
 			type Result struct {
 				Err string `json:"err"`
 				Msg string `json:"msg"`
@@ -264,6 +279,7 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 			}
 			if tb.verbose {
 				log.Printf("login %s", result.Err)
+				return
 			}
 		}
 	}
