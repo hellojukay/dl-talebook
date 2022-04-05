@@ -2,15 +2,25 @@ package internal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime"
 	"net"
 	"net/http"
+	"os"
 	"strings"
+
+	cookiejar "github.com/vanym/golang-netscape-cookiejar"
 )
 
-// Decode would parse the http response into a json based content.
-func Decode(resp *http.Response, data interface{}) (err error) {
+const (
+	DefaultUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
+	SuccessStatus    = "ok"
+	BookNotFound     = "not_found"
+)
+
+// DecodeResponse would parse the http response into a json based content.
+func DecodeResponse(resp *http.Response, data interface{}) (err error) {
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(data)
 
@@ -63,4 +73,48 @@ func WrapTimeOut(err error) error {
 	}
 
 	return err
+}
+
+// SaveCookies would save all the cookies into a file.
+func SaveCookies(jar http.CookieJar, path string) error {
+	// Create or open the file.
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+
+	if c, ok := jar.(*cookiejar.Jar); ok {
+		// Save cookies to files.
+		if _, err = c.WriteTo(file); err != nil {
+			return err
+		}
+	} else {
+		return errors.New("illegal types for given cookiejar instance")
+	}
+
+	return nil
+}
+
+// CreateCookies would load the cookies from file if it exists.
+func CreateCookies(path string) (http.CookieJar, error) {
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+		// We have cookies, load it.
+		file, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer func() { _ = file.Close() }()
+
+		_, err = jar.ReadFrom(file)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return jar, nil
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -12,10 +13,11 @@ import (
 
 // Used for register account on talebook website.
 type registerConfig struct {
-	website  string
-	username string
-	password string
-	email    string
+	website   string
+	username  string
+	password  string
+	email     string
+	userAgent string
 }
 
 // Arguments instance.
@@ -40,6 +42,7 @@ func init() {
 	registerCmd.Flags().StringVarP(&regConf.username, "username", "u", "", "The account login name.")
 	registerCmd.Flags().StringVarP(&regConf.password, "password", "p", "", "The account password.")
 	registerCmd.Flags().StringVarP(&regConf.email, "email", "e", "", "The account email.")
+	registerCmd.Flags().StringVarP(&regConf.userAgent, "user-agent", "a", internal.DefaultUserAgent, "The account email.")
 
 	_ = registerCmd.MarkFlagRequired("website")
 	_ = registerCmd.MarkFlagRequired("username")
@@ -50,6 +53,7 @@ func init() {
 // register will create account on given website
 func register() {
 	website := internal.GenerateUrl(regConf.website, "/api/user/sign_up")
+	referer := internal.GenerateUrl(regConf.website, "/signup")
 	values := url.Values{
 		"username": {regConf.username},
 		"password": {regConf.password},
@@ -57,20 +61,30 @@ func register() {
 		"email":    {regConf.email},
 	}
 
-	form, err := http.PostForm(website, values)
+	req, err := http.NewRequest(http.MethodPost, website, strings.NewReader(values.Encode()))
+	if err != nil {
+		log.Fatalln("Illegal login request: %w", err)
+	}
+	req.Header.Set("User-Agent", regConf.userAgent)
+	req.Header.Set("referer", referer)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	form, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	defer func() { _ = form.Body.Close() }()
+	if form.StatusCode != http.StatusOK {
+		log.Fatalf("Error in register user, message: %s", form.Status)
+	}
 
 	result := &internal.CommonResponse{}
-	err = internal.Decode(form, result)
-	if err != nil {
+	if err = internal.DecodeResponse(form, result); err != nil {
 		log.Fatalln(err)
 	}
 
-	if result.Err == "ok" {
+	if result.Err == internal.SuccessStatus {
 		log.Printf("Register success.")
 	} else {
 		log.Fatalf("Register failed, reason: %s", result.Err)

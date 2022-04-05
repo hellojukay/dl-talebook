@@ -73,6 +73,7 @@ func init() {
 	downloadCmd.Flags().IntVarP(&downloadConfig.Retry, "retry", "r", downloadConfig.Retry, "The max retry times for timeout download request.")
 	downloadCmd.Flags().StringVarP(&downloadConfig.UserAgent, "user-agent", "a", downloadConfig.UserAgent,
 		"Set User-Agent for download request.")
+	downloadCmd.Flags().BoolVarP(&downloadConfig.Rename, "rename", "n", downloadConfig.Rename, "Rename the book file by book ID.")
 
 	_ = downloadCmd.MarkFlagRequired("website")
 }
