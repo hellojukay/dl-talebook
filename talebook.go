@@ -224,7 +224,7 @@ func WithUserAgentOption(uagent string) func(*TaleBook) {
 }
 func WithLoginOption(user string, password string) func(*TaleBook) {
 	return func(tb *TaleBook) {
-		if user != "" && password != "" {
+		if (user != "") && (password != "") {
 
 			api := urlJoin(tb.api, "api/user/sign_in")
 			req, err := http.NewRequest(http.MethodPost, api, nil)

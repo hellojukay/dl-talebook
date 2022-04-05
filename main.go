@@ -25,14 +25,14 @@ var (
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	flag.IntVar(&concurrent, "c", concurrent, "maximum number of concurrent download tasks allowed per second")
 	flag.StringVar(&username, "username", username, "username")
 	flag.StringVar(&password, "password", password, "password")
 	flag.StringVar(&site, "site", site, "tabebook web site")
 	flag.StringVar(&dir, "dir", dir, "data dir")
-	flag.DurationVar(&timeout, "timeout", timeout, "http timeout")
 	flag.StringVar(&userAgent, "user-agent", userAgent, "http userAgent")
+	flag.DurationVar(&timeout, "timeout", timeout, "http timeout")
 	flag.BoolVar(&verbose, "verbose", false, "show debug log")
+	flag.IntVar(&concurrent, "c", concurrent, "maximum number of concurrent download tasks allowed per second")
 
 	flag.Parse()
 }
@@ -43,6 +43,7 @@ func main() {
 		WithTimeOutOption(timeout),
 		WithLoginOption(username, password),
 	)
+
 	if err != nil {
 		log.Fatal(err)
 	}
