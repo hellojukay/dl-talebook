@@ -9,29 +9,21 @@ import (
 )
 
 func filename(resp *http.Response) string {
-	array := strings.Split(resp.Request.RequestURI, "/")
-	name := array[len(array)-1]
-	getDispos := resp.Header.Get("content-disposition")
-	if getDispos != "" {
-		_, params, err := mime.ParseMediaType(getDispos)
-		if err != nil {
-			return name
-		}
-		filename, ok := params["filename"]
-		if ok {
-			return filename
+	if dispos := resp.Header.Get("content-disposition"); dispos != "" {
+		if _, params, err := mime.ParseMediaType(dispos); err == nil {
+			if filename, ok := params["filename"]; ok {
+				return filename
+			}
 		}
 	}
-	return name
+	return ""
 }
 
 func urlJoin(base string, pathes ...string) string {
 	for _, path := range pathes {
-		if strings.HasSuffix(base, "/") {
-			base = base + path
-		} else {
-			base = base + "/" + path
-		}
+		base = strings.Trim(base, "/")
+		path = strings.Trim(path, "/")
+		base = base + "/" + path
 	}
 	return base
 }
