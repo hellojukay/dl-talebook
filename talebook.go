@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -70,6 +71,7 @@ type TaleBook struct {
 	client     *http.Client
 	err        error
 	userAgent  string
+	verbose    bool
 	ServerInfo ServerInfo
 }
 
@@ -119,6 +121,9 @@ func (tale *TaleBook) Next() (*Book, error) {
 		return nil, NO_MORE_BOOK_ERROR
 	}
 	var api = urlJoin(tale.api, "api", "book", fmt.Sprintf("%d", tale.index))
+	if tale.verbose {
+		log.Printf("feth book from %s", api)
+	}
 	response, err := tale.client.Get(api)
 	if err != nil {
 		return nil, err
@@ -127,7 +132,7 @@ func (tale *TaleBook) Next() (*Book, error) {
 	var book Book
 	decoder := json.NewDecoder(response.Body)
 	if err = decoder.Decode(&book); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse json failed %w", err)
 	}
 	if book.Err != "ok" {
 		return nil, fmt.Errorf("%s %s", api, book.Err)
@@ -192,7 +197,7 @@ func NewTableBook(site string, opstions ...func(*TaleBook)) (*TaleBook, error) {
 	for _, option := range opstions {
 		option(tb)
 		if tb.err != nil {
-			return nil, err
+			return nil, tb.err
 		}
 	}
 	tb.getInfo()
@@ -212,16 +217,63 @@ func WithUserAgentOption(uagent string) func(*TaleBook) {
 }
 func WithLoginOption(user string, password string) func(*TaleBook) {
 	return func(tb *TaleBook) {
-		api := urlJoin(tb.api, "api/user/sign_in")
-		respnose, err := tb.client.PostForm(api, map[string][]string{
-			"username": []string{user},
-			"password": []string{password},
-		})
-		tb.err = err
-		defer respnose.Body.Close()
+		if user != "" && password != "" {
+
+			api := urlJoin(tb.api, "api/user/sign_in")
+			req, err := http.NewRequest(http.MethodPost, api, nil)
+			if err != nil {
+				tb.err = fmt.Errorf("login failed %w", err)
+				return
+			}
+			req.PostForm = url.Values{
+				"username": []string{user},
+				"password": []string{password},
+			}
+			if tb.userAgent != "" {
+				req.Header.Set("user-agent", tb.userAgent)
+			}
+			req.Header.Set("referer", tb.api)
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			respnose, err := tb.client.Do(req)
+			if tb.verbose {
+				log.Printf("login %s username: %s password: %s", api, username, password)
+			}
+
+			if err != nil {
+				tb.err = fmt.Errorf("login failed %w", err)
+				return
+			}
+			defer respnose.Body.Close()
+
+			type Result struct {
+				Err string `json:"err"`
+				Msg string `json:"msg"`
+			}
+			if tb.verbose {
+				log.Printf("%s %s", api, respnose.Status)
+			}
+			var result Result
+			decoder := json.NewDecoder(respnose.Body)
+			if err = decoder.Decode(&result); err != nil {
+				tb.err = fmt.Errorf("login failed %w", err)
+				return
+			}
+			if result.Err != "ok" {
+				tb.err = fmt.Errorf("login failed error: %s,message: %s", result.Err, result.Msg)
+				return
+			}
+			if tb.verbose {
+				log.Printf("login %s", result.Err)
+			}
+		}
 	}
 }
 
+func WithVerboseOption(verbose bool) func(*TaleBook) {
+	return func(tb *TaleBook) {
+		tb.verbose = verbose
+	}
+}
 func (tb *TaleBook) getInfo() {
 
 	api := urlJoin(tb.api, "api/user/info")
