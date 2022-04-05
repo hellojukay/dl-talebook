@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -240,7 +242,7 @@ func WithTimeOutOption(timeout time.Duration) func(*TaleBook) {
 
 func WithUserAgentOption(uagent string) func(*TaleBook) {
 	return func(tb *TaleBook) {
-		tb.userAgent = userAgent
+		tb.userAgent = ""
 	}
 }
 func WithUserCookieOption(cookie string) func(*TaleBook) {
@@ -272,7 +274,7 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			if tb.verbose {
-				log.Printf("login %s username: %s password: %s", api, username, password)
+				log.Printf("login %s username: %s password: %s", api, "username", password)
 			}
 
 			respnose, err := tb.client.Do(req)
@@ -354,4 +356,36 @@ func (tb *TaleBook) getInfo() {
 		return
 	}
 	tb.ServerInfo = info
+}
+
+func filename(resp *http.Response) string {
+	if dispos := resp.Header.Get("content-disposition"); dispos != "" {
+		if _, params, err := mime.ParseMediaType(dispos); err == nil {
+			if filename, ok := params["filename"]; ok {
+				return filename
+			}
+		}
+	}
+	return ""
+}
+
+func urlJoin(base string, pathes ...string) string {
+	for _, path := range pathes {
+		base = strings.Trim(base, "/")
+		path = strings.Trim(path, "/")
+		base = base + "/" + path
+	}
+	return base
+}
+
+func wrapperTimeOutError(err error) error {
+	switch e := err.(type) {
+	case net.Error:
+		if e.Timeout() {
+			return fmt.Errorf("timeout")
+		}
+		return err
+	default:
+		return err
+	}
 }
