@@ -318,6 +318,11 @@ func WithVerboseOption(verbose bool) func(*TaleBook) {
 		tb.verbose = verbose
 	}
 }
+func WithStartIndex(index int) func(*TaleBook) {
+	return func(tb *TaleBook) {
+		tb.index = index
+	}
+}
 func (tb *TaleBook) getInfo() {
 
 	api := urlJoin(tb.api, "api/user/info")

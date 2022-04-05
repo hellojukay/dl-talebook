@@ -21,6 +21,7 @@ var (
 	password   = ""
 	concurrent = 1
 	verbose    = false
+	startIndex = 0
 )
 
 func init() {
@@ -35,6 +36,7 @@ func init() {
 	flag.DurationVar(&timeout, "timeout", timeout, "http timeout")
 	flag.BoolVar(&verbose, "verbose", false, "show debug log")
 	flag.IntVar(&concurrent, "c", concurrent, "maximum number of concurrent download tasks allowed per second")
+	flag.IntVar(&startIndex, "start-index", startIndex, "start book id")
 
 	flag.Parse()
 }
@@ -44,6 +46,7 @@ func main() {
 		WithUserCookieOption(cookie),
 		WithUserAgentOption(userAgent),
 		WithTimeOutOption(timeout),
+		WithStartIndex(startIndex),
 		WithLoginOption(username, password),
 	)
 
