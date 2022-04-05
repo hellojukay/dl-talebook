@@ -68,7 +68,7 @@ func main() {
 
 		go func() {
 			if err = tale.Download(book, dir); err != nil {
-				log.Printf("downloading %s , found %s [skiped]", book.Book.Title, err)
+				log.Printf("downloading %s , but %s [skiped]", book.Book.Title, err)
 				return
 			}
 			log.Printf("downloading %s successed", book.String())
