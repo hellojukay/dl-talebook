@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"mime"
 	"net"
 	"net/http"
@@ -19,6 +20,8 @@ const (
 	BookNotFound     = "not_found"
 )
 
+var ErrNeedSignin = errors.New("need user account to download books")
+
 // DecodeResponse would parse the http response into a json based content.
 func DecodeResponse(resp *http.Response, data interface{}) (err error) {
 	decoder := json.NewDecoder(resp.Body)
@@ -30,8 +33,8 @@ func DecodeResponse(resp *http.Response, data interface{}) (err error) {
 // Filename parse the file name from Content-Disposition header.
 // If there is no such head, we would return blank string.
 func Filename(resp *http.Response) (name string) {
-	if disposition := resp.Header.Get("content-disposition"); disposition != "" {
-		if _, params, err := mime.ParseMediaType(disposition); err != nil {
+	if disposition := resp.Header.Get("Content-Disposition"); disposition != "" {
+		if _, params, err := mime.ParseMediaType(disposition); err == nil {
 			if filename, ok := params["filename"]; ok {
 				name = filename
 			}
@@ -102,8 +105,9 @@ func CreateCookies(path string) (http.CookieJar, error) {
 		return nil, err
 	}
 
-	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
-		// We have cookies, load it.
+	if _, err := os.Stat(path); err == nil {
+		log.Println("Found cookie file, load it.")
+
 		file, err := os.Open(path)
 		if err != nil {
 			return nil, err

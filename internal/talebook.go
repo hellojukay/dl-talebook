@@ -54,7 +54,7 @@ func NewDownloadConfig() *config {
 		Timeout:       10 * time.Second,
 		Retry:         5,
 		UserAgent:     DefaultUserAgent,
-		Rename:        true,
+		Rename:        false,
 	}
 }
 
@@ -69,6 +69,20 @@ func NewTalebook(c *config) *talebook {
 
 	// Create common http client.
 	client := &http.Client{Jar: cookieJar, Timeout: c.Timeout}
+
+	// Disable login redirect.
+	loginUrl := GenerateUrl(c.Website, "/login")
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if req.URL.String() == loginUrl {
+			return ErrNeedSignin
+		}
+
+		// Allow 10 redirects by default.
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+		return nil
+	}
 
 	// Try to signin if required.
 	if err := login(c.Username, c.Password, c.Website, c.UserAgent, cookieFile, client); err != nil {
@@ -102,6 +116,7 @@ func NewTalebook(c *config) *talebook {
 		retry:        c.Retry,
 		downloadPath: c.DownloadPath,
 		formats:      c.Formats,
+		rename:       c.Rename,
 	}
 
 	return &talebook{

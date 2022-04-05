@@ -55,6 +55,7 @@ Flags:
   -i, --initial int         The book id you want to start download. It should exceed 0. (default 1)
   -p, --password string     The account password.
   -g, --progress string     The download progress file name you want to use, it would be saved under the download directory. (default "progress")
+  -n, --rename              Rename the book file by book ID. (default true)
   -r, --retry int           The max retry times for timeout download request. (default 5)
   -t, --thread int          The number of concurrent download request. (default 1)
   -o, --timeout duration    The max pending time for download request. (default 10s)
