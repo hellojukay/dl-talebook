@@ -3,6 +3,7 @@ Downloading books from [talebook server](https://github.com/talebook/talebook) ,
 
 1. 并发任务
 2. 断点下载
+3. 纯golang编写, 可以运行在群晖上
 
 # Demo
 ![demo](demo.png)
