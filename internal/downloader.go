@@ -11,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/k0kubun/go-ansi"
+	"github.com/schollz/progressbar/v3"
 )
 
 // downloadWorker is the download instance.
@@ -47,7 +50,7 @@ func (worker *downloadWorker) Download() {
 		}
 
 		if info == nil {
-			log.Printf("Book with ID [%d] is not exist on target website", bookID)
+			log.Printf("Book with ID [%d] is not exist on target website.", bookID)
 			worker.downloadedBook(bookID)
 			continue
 		}
@@ -145,8 +148,28 @@ func (worker *downloadWorker) downloadBook(bookID int64, title, format, href str
 	}
 	defer func() { _ = writer.Close() }()
 
+	// Add download progress
+	progressTitle := fmt.Sprintf("[%d/%d] Downloading %s %s...", bookID, worker.progress.Size(), format, title)
+	bar := progressbar.NewOptions64(resp.ContentLength,
+		progressbar.OptionSetWriter(ansi.NewAnsiStdout()),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(15),
+		progressbar.OptionOnCompletion(func() {
+			fmt.Printf("\n")
+		}),
+		progressbar.OptionSetDescription(progressTitle),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
+	)
+
 	// Write file content
-	_, err = io.Copy(writer, resp.Body)
+	_, err = io.Copy(io.MultiWriter(writer, bar), resp.Body)
 	if err != nil {
 		return WrapTimeOut(err)
 	}

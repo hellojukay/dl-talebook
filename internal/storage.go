@@ -139,3 +139,8 @@ func (storage *storage) SaveBookID(bookID int64) error {
 func (storage *storage) Finished() bool {
 	return storage.progress.Count() == storage.progress.Len()
 }
+
+// Size would return the book size.
+func (storage *storage) Size() uint {
+	return storage.progress.Len()
+}
