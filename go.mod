@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/bits-and-blooms/bitset v1.2.2
+	github.com/jedib0t/go-pretty/v6 v6.3.0
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213
 	github.com/schollz/progressbar/v3 v3.8.6
 	github.com/spf13/cobra v1.4.0

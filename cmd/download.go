@@ -3,8 +3,11 @@ package cmd
 import (
 	"errors"
 	"log"
+	"os"
+	"reflect"
 	"strings"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 
 	"github.com/hellojukay/dl-talebook/internal"
@@ -38,6 +41,18 @@ var downloadCmd = &cobra.Command{
 			// Make sure all the format should be upper case.
 			downloadConfig.Formats[i] = strings.ToUpper(format)
 		}
+
+		// Print download configuration.
+		t := table.NewWriter()
+		t.SetOutputMirror(os.Stdout)
+		t.AppendHeader(table.Row{"Config Key", "Config Value"})
+		cv := reflect.ValueOf(downloadConfig)
+		for i := 0; i < cv.NumField(); i++ {
+			name := cv.Type().Field(i).Name
+			value := cv.Field(i).Interface()
+			t.AppendRow([]interface{}{name, value})
+		}
+		t.Render()
 
 		// Create the downloader
 		talebook := internal.NewTalebook(&downloadConfig)
