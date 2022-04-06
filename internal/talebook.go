@@ -62,7 +62,7 @@ func NewDownloadConfig() *config {
 func NewTalebook(c *config) *talebook {
 	// Create cookiejar.
 	cookieFile := path.Join(c.DownloadPath, c.CookieFile)
-	cookieJar, err := CreateCookies(cookieFile)
+	cookieJar, err := NewCookieJar(cookieFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -85,7 +85,7 @@ func NewTalebook(c *config) *talebook {
 	}
 
 	// Try to signin if required.
-	if err := login(c.Username, c.Password, c.Website, c.UserAgent, cookieFile, client); err != nil {
+	if err := login(c.Username, c.Password, c.Website, c.UserAgent, client); err != nil {
 		log.Fatalln(err)
 	}
 
@@ -139,7 +139,7 @@ func (t *talebook) Start() {
 
 // login to the given website by username and password. We will save the cookie into file.
 // Thus, you don't need to signin twice.
-func login(username, password, website, userAgent, cookiePath string, client *http.Client) error {
+func login(username, password, website, userAgent string, client *http.Client) error {
 	if username == "" || password == "" {
 		// No need to login.
 		return nil

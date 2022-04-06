@@ -4,14 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"mime"
 	"net"
 	"net/http"
-	"os"
 	"strings"
-
-	cookiejar "github.com/vanym/golang-netscape-cookiejar"
 )
 
 const (
@@ -76,29 +72,4 @@ func WrapTimeOut(err error) error {
 	}
 
 	return err
-}
-
-// CreateCookies would load the cookies from file if it exists.
-func CreateCookies(path string) (http.CookieJar, error) {
-	jar, err := cookiejar.New(&cookiejar.Options{AutoWritePath: path})
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := os.Stat(path); err == nil {
-		log.Println("Found cookie file, load it.")
-
-		file, err := os.Open(path)
-		if err != nil {
-			return nil, err
-		}
-		defer func() { _ = file.Close() }()
-
-		_, err = jar.ReadFrom(file)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return jar, nil
 }
