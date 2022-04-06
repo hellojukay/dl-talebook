@@ -102,14 +102,7 @@ func (worker *downloadWorker) downloadBook(bookID int64, title, format, href str
 	}
 
 	// Start download.
-	site := ""
-	if strings.HasPrefix(href, "http") {
-		// Backward API support.
-		site = href
-	} else {
-		site = GenerateUrl(worker.website, href)
-	}
-
+	site := GenerateUrl(worker.website, href)
 	req, err := http.NewRequest(http.MethodGet, site, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("illegal book download request: %w", err)
