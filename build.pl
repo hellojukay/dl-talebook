@@ -8,7 +8,7 @@ sub command_exsits {
     my $exit = system("which $cmd > /dev/null 2>&1");
     return $exit == 0;
 }
-
+$ENV{PATH} .= "~/go/bin/";
 $ENV{CGO_ENABLED} = 0;
 if(command_exsits('gox')) {
     print("[INFO] gox command found , now run gox build.\n");
