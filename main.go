@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -22,6 +24,7 @@ var (
 	concurrent = 1
 	verbose    = false
 	startIndex = 0
+	version    = false
 )
 
 func init() {
@@ -35,10 +38,17 @@ func init() {
 	flag.StringVar(&userAgent, "user-agent", userAgent, "http userAgent")
 	flag.DurationVar(&timeout, "timeout", timeout, "http timeout")
 	flag.BoolVar(&verbose, "verbose", false, "show debug log")
+	flag.BoolVar(&version, "version", false, "show progream version")
+
 	flag.IntVar(&concurrent, "c", concurrent, "maximum number of concurrent download tasks allowed per second")
 	flag.IntVar(&startIndex, "start-index", startIndex, "start book id")
 
 	flag.Parse()
+
+	if version {
+		PrintVersion()
+		os.Exit(0)
+	}
 }
 func main() {
 	tale, err := NewTableBook(site,
@@ -76,5 +86,11 @@ func main() {
 			}
 			log.Printf("downloading %s successed", book.String())
 		}()
+	}
+}
+
+func PrintVersion() {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		fmt.Printf("%s", info.Main.Version)
 	}
 }
