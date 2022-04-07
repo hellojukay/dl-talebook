@@ -197,6 +197,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		_, err = io.Copy(fh, response.Body)
 		if err != nil {
 			fh.Close()
+			os.Remove(filepath)
 			return wrapperTimeOutError(err)
 		}
 		fh.Close()
