@@ -60,6 +60,18 @@ func wrapperTimeOutError(err error) error {
 	}
 }
 
+func IsTimeOutError(err error) bool {
+	switch e := err.(type) {
+	case net.Error:
+		if e.Timeout() {
+			return true
+		}
+	default:
+		return false
+	}
+	return false
+}
+
 func IsValidFilename(fp string) bool {
 	// Check if file already exists
 	if _, err := os.Stat(fp); err == nil {

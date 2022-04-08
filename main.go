@@ -22,6 +22,7 @@ var (
 	startIndex      = 0
 	version         = false
 	continueOnStart = false
+	retry           = 3
 )
 
 func init() {
@@ -39,6 +40,7 @@ func init() {
 	flag.BoolVar(&continueOnStart, "continue", true, "continue an incomplete download")
 
 	flag.IntVar(&startIndex, "start-index", startIndex, "start book id")
+	flag.IntVar(&retry, "retry", retry, "timeout retries")
 
 	flag.Parse()
 
@@ -49,6 +51,7 @@ func init() {
 }
 func main() {
 	tale, err := NewTableBook(site,
+		WithRetry(retry),
 		WithVerboseOption(verbose),
 		WithUserCookieOption(cookie),
 		WithUserAgentOption(userAgent),

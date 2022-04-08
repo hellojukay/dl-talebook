@@ -61,6 +61,7 @@ type TaleBook struct {
 	serverInfo ServerInfo
 	MaxIndex   int
 	Total      int
+	retry      int
 	exit       func()
 }
 
@@ -106,13 +107,24 @@ func (b Book) String() string {
 }
 
 func (tale *TaleBook) Request(req *http.Request) (*http.Response, error) {
+	return tale.doRequest(req, 0)
+}
+func (tale *TaleBook) doRequest(req *http.Request, count int) (*http.Response, error) {
 	if tale.userAgent != "" {
 		req.Header.Set("User-Agent", tale.userAgent)
 	}
 	if tale.cookie != "" {
 		req.Header.Set("cookie", tale.cookie)
 	}
-	return tale.client.Do(req)
+	response, err := tale.client.Do(req)
+	if err != nil && tale.retry > 0 && IsTimeOutError(err) {
+		if count > tale.retry {
+			return nil, err
+		}
+		log.Printf("retry %s/%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, 3)
+		return tale.doRequest(req, count+1)
+	}
+	return response, err
 }
 func (tale *TaleBook) Next() (*Book, error) {
 	tale.index++
@@ -254,6 +266,11 @@ func WithTimeOutOption(timeout time.Duration) func(*TaleBook) {
 	}
 }
 
+func WithRetry(times int) func(*TaleBook) {
+	return func(tb *TaleBook) {
+		tb.retry = times
+	}
+}
 func WithUserAgentOption(uagent string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		tb.userAgent = userAgent
