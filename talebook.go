@@ -22,47 +22,32 @@ var (
 )
 
 type ServerInfo struct {
-	Err string `json:"err"`
-	Cdn string `json:"cdn"`
-	Sys struct {
-		Books      int    `json:"books"`
-		Tags       int    `json:"tags"`
-		Authors    int    `json:"authors"`
-		Publishers int    `json:"publishers"`
-		Series     int    `json:"series"`
-		Mtime      string `json:"mtime"`
-		Users      int    `json:"users"`
-		Active     int    `json:"active"`
-		Version    string `json:"version"`
-		Title      string `json:"title"`
-		Socials    []struct {
-			Text  string `json:"text"`
-			Value string `json:"value"`
-			Help  bool   `json:"help"`
-			Link  string `json:"link"`
-		} `json:"socials"`
-		Friends []struct {
-			Text string `json:"text"`
-			Href string `json:"href"`
-		} `json:"friends"`
-		Footer string `json:"footer"`
-		Allow  struct {
-			Register bool `json:"register"`
-			Download bool `json:"download"`
-			Push     bool `json:"push"`
-			Read     bool `json:"read"`
-		} `json:"allow"`
-	} `json:"sys"`
-	User struct {
-		Avatar      string `json:"avatar"`
-		IsLogin     bool   `json:"is_login"`
-		IsAdmin     bool   `json:"is_admin"`
-		Nickname    string `json:"nickname"`
-		Email       string `json:"email"`
-		KindleEmail string `json:"kindle_email"`
-		Extra       struct {
-		} `json:"extra"`
-	} `json:"user"`
+	Err   string `json:"err"`
+	Title string `json:"title"`
+	Total int    `json:"total"`
+	Books []struct {
+		ID            int         `json:"id"`
+		Title         string      `json:"title"`
+		Rating        int         `json:"rating"`
+		CountVisit    int         `json:"count_visit"`
+		CountDownload int         `json:"count_download"`
+		Timestamp     string      `json:"timestamp"`
+		Pubdate       string      `json:"pubdate"`
+		Collector     string      `json:"collector"`
+		Author        string      `json:"author"`
+		Authors       []string    `json:"authors"`
+		Tag           string      `json:"tag"`
+		Tags          []string    `json:"tags"`
+		AuthorSort    string      `json:"author_sort"`
+		Publisher     string      `json:"publisher"`
+		Comments      string      `json:"comments"`
+		Series        interface{} `json:"series"`
+		Language      interface{} `json:"language"`
+		Isbn          string      `json:"isbn"`
+		Img           string      `json:"img"`
+		AuthorURL     string      `json:"author_url"`
+		PublisherURL  string      `json:"publisher_url"`
+	} `json:"books"`
 	Msg string `json:"msg"`
 }
 type TaleBook struct {
@@ -73,7 +58,9 @@ type TaleBook struct {
 	userAgent  string
 	cookie     string
 	verbose    bool
-	ServerInfo ServerInfo
+	serverInfo ServerInfo
+	MaxIndex   int
+	Total      int
 }
 
 type Book struct {
@@ -118,7 +105,7 @@ func (b Book) String() string {
 }
 func (tale *TaleBook) Next() (*Book, error) {
 	tale.index++
-	if tale.index > tale.ServerInfo.Sys.Books {
+	if tale.index > tale.LastIndex() {
 		return nil, NO_MORE_BOOK_ERROR
 	}
 	var api = urlJoin(tale.api, "api", "book", fmt.Sprintf("%d", tale.index))
@@ -324,9 +311,18 @@ func WithStartIndex(index int) func(*TaleBook) {
 		tb.index = index
 	}
 }
+func (tb *TaleBook) LastIndex() int {
+	var m = tb.Total
+	for _, book := range tb.serverInfo.Books {
+		if book.ID > m {
+			m = book.ID
+		}
+	}
+	return m
+}
 func (tb *TaleBook) getInfo() {
 
-	api := urlJoin(tb.api, "api/user/info")
+	api := urlJoin(tb.api, "api/recent")
 	req, err := http.NewRequest(http.MethodGet, api, nil)
 	if err != nil {
 		tb.err = wrapperTimeOutError(err)
@@ -354,5 +350,6 @@ func (tb *TaleBook) getInfo() {
 		tb.err = err
 		return
 	}
-	tb.ServerInfo = info
+	tb.serverInfo = info
+	tb.Total = info.Total
 }

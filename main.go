@@ -64,7 +64,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("%d books retrieved on server %s", tale.ServerInfo.Sys.Books, site)
+	log.Printf("%d books retrieved on server %s", tale.Total, site)
 	l := rate.NewLimiter(rate.Limit(concurrent), concurrent)
 
 	for {
