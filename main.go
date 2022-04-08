@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -9,8 +8,6 @@ import (
 	"os"
 	"runtime/debug"
 	"time"
-
-	"golang.org/x/time/rate"
 )
 
 var (
@@ -21,7 +18,6 @@ var (
 	timeout    = time.Duration(10) * time.Second
 	username   = ""
 	password   = ""
-	concurrent = 1
 	verbose    = false
 	startIndex = 0
 	version    = false
@@ -40,7 +36,6 @@ func init() {
 	flag.BoolVar(&verbose, "verbose", false, "show debug log")
 	flag.BoolVar(&version, "version", false, "show progream version")
 
-	flag.IntVar(&concurrent, "c", concurrent, "maximum number of concurrent download tasks allowed per second")
 	flag.IntVar(&startIndex, "start-index", startIndex, "start book id")
 
 	flag.Parse()
@@ -65,11 +60,8 @@ func main() {
 	}
 
 	log.Printf("%d books retrieved on server %s", tale.Total, site)
-	l := rate.NewLimiter(rate.Limit(concurrent), concurrent)
 
 	for {
-		// 限制速度
-		l.Wait(context.Background())
 		book, err := tale.Next()
 		if err != nil {
 			log.Printf("%s [skiped]", err.Error())
@@ -79,13 +71,11 @@ func main() {
 			continue
 		}
 
-		go func() {
-			if err = tale.Download(book, dir); err != nil {
-				log.Printf("[%d/%d] downloading %s, %s [skiped]", book.Book.ID, tale.LastIndex(), book.Book.Title, err)
-				return
-			}
-			log.Printf("[%d/%d] downloading %s successed", book.Book.ID, tale.LastIndex(), book.String())
-		}()
+		if err = tale.Download(book, dir); err != nil {
+			log.Printf("[%d/%d] downloading %s, %s [skiped]", book.Book.ID, tale.LastIndex(), book.Book.Title, err)
+			return
+		}
+		log.Printf("[%d/%d] downloading %s successed", book.Book.ID, tale.LastIndex(), book.String())
 	}
 }
 
