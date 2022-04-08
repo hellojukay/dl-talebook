@@ -1,9 +1,9 @@
 # dl-talebook
 Downloading books from [talebook server](https://github.com/talebook/talebook) , inspired from gist https://gist.github.com/syhily/9feb936bcaebf2beec567733810f4666 .
 
-1. 并发任务
+1. 整站爬取
 2. 断点下载
-3. 纯golang编写, 可以运行在群晖上
+3. 无第三方依赖，跨平台，可以便捷的运行在群晖上
 
 # Demo
 ![demo](demo.png)
