@@ -121,7 +121,7 @@ func (tale *TaleBook) doRequest(req *http.Request, count int) (*http.Response, e
 		if count > tale.retry {
 			return nil, err
 		}
-		log.Printf("retry %s/%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, 3)
+		log.Printf("retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, 3)
 		return tale.doRequest(req, count+1)
 	}
 	return response, err
