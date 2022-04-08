@@ -14,9 +14,8 @@ go install github.com/hellojukay/dl-talebook@latest
 # Help
 ```
 hellojukay@local dl-talebook (main) $ ./dl-talebook -h
-Usage of ./dl-talebook:
-  -c int
-        maximum number of concurrent download tasks allowed per second (default 1)
+  -continue
+        continue an incomplete download (default true)
   -cookie string
         http cookie
   -dir string
@@ -35,4 +34,7 @@ Usage of ./dl-talebook:
         username
   -verbose
         show debug log
+  -version
+        show progream version
+
 ```
