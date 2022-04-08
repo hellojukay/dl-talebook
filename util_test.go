@@ -11,7 +11,7 @@ func TestRemoveChars(t *testing.T) {
 		if IsValidFilename(filename) {
 			t.Fail()
 		}
-		newName := removeChars(filename, IllegalCharacters)
+		newName := removeChars(filename, `\/:*?"<>|`)
 		if !IsValidFilename(newName) {
 			t.Fail()
 		}
