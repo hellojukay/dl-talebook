@@ -227,7 +227,7 @@ func NewTableBook(site string, opstions ...func(*TaleBook)) (*TaleBook, error) {
 	if tb.exit != nil {
 
 		index, err := tryReadHistoryIndex(tb.api)
-		if tb.verbose {
+		if tb.verbose && err != nil {
 			log.Printf(err.Error())
 		}
 		if tb.index == 0 && index != 0 {
