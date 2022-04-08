@@ -1,5 +1,5 @@
 # dl-talebook
-Downloading books from [talebook server](https://github.com/talebook/talebook) , inspired from gist https://gist.github.com/syhily/9feb936bcaebf2beec567733810f4666 .
+Downloading books from [talebook server](https://github.com/talebook/talebook) , inspired by syhily's [gist](https://gist.github.com/syhily/9feb936bcaebf2beec567733810f4666).
 
 1. 整站爬取
 2. 断点下载
