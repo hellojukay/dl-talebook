@@ -17,4 +17,10 @@ func TestRemoveChars(t *testing.T) {
 		}
 	}
 
+	filename := "80/20法则"
+	newName := tosafeFileName(filename)
+	if !IsValidFilename(newName) {
+		t.Fail()
+	}
+
 }
