@@ -6,7 +6,7 @@ Downloading books from [talebook server](https://github.com/talebook/talebook) ,
 3. 无第三方依赖，跨平台，可以便捷的运行在群晖上
 
 # Demo
-![demo](demo.png)
+![demo](demo.gif)
 # Install
 ```
 go install github.com/hellojukay/dl-talebook@latest
