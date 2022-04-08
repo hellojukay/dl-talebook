@@ -81,10 +81,10 @@ func main() {
 
 		go func() {
 			if err = tale.Download(book, dir); err != nil {
-				log.Printf("downloading %s, %s [skiped]", book.Book.Title, err)
+				log.Printf("[%d/%d] downloading %s, %s [skiped]", book.Book.ID, tale.LastIndex(), book.Book.Title, err)
 				return
 			}
-			log.Printf("downloading %s successed", book.String())
+			log.Printf("[%d/%d] downloading %s successed", book.Book.ID, tale.LastIndex(), book.String())
 		}()
 	}
 }
