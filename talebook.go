@@ -13,8 +13,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/dustin/go-humanize"
 )
 
 var (
@@ -101,7 +99,7 @@ func (b Book) String() string {
 	for _, file := range b.Book.Files {
 		size = size + file.Size
 	}
-	return fmt.Sprintf("%s-- [%s] %s", b.Book.Title, strings.Join(b.Book.Authors, ","), humanize.Bytes(uint64(size)))
+	return fmt.Sprintf("%s-- [%s] %s", b.Book.Title, strings.Join(b.Book.Authors, ","), Bytes(uint64(size)))
 }
 
 func (tale *TaleBook) Request(req *http.Request) (*http.Response, error) {
