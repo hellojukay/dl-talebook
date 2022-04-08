@@ -103,6 +103,16 @@ func (b Book) String() string {
 	}
 	return fmt.Sprintf("%s-- [%s] %s", b.Book.Title, strings.Join(b.Book.Authors, ","), humanize.Bytes(uint64(size)))
 }
+
+func (tale *TaleBook) Request(req *http.Request) (*http.Response, error) {
+	if tale.userAgent != "" {
+		req.Header.Set("User-Agent", tale.userAgent)
+	}
+	if tale.cookie != "" {
+		req.Header.Set("cookie", tale.cookie)
+	}
+	return tale.client.Do(req)
+}
 func (tale *TaleBook) Next() (*Book, error) {
 	tale.index++
 	if tale.index > tale.LastIndex() {
@@ -113,13 +123,10 @@ func (tale *TaleBook) Next() (*Book, error) {
 		log.Printf("feth book from %s", api)
 	}
 	req, err := http.NewRequest(http.MethodGet, api, nil)
-	if tale.userAgent != "" {
-		req.Header.Set("user-agent", tale.userAgent)
+	if err != nil {
+		return nil, err
 	}
-	if tale.cookie != "" {
-		req.Header.Set("cookie", tale.cookie)
-	}
-	response, err := tale.client.Do(req)
+	response, err := tale.Request(req)
 	if err != nil {
 		return nil, err
 	}
@@ -145,13 +152,8 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		if err != nil {
 			return err
 		}
-		if tale.cookie != "" {
-			req.Header.Set("cookie", tale.cookie)
-		}
-		if tale.userAgent != "" {
-			req.Header.Set("user-agent", tale.userAgent)
-		}
-		response, err := tale.client.Do(req)
+
+		response, err := tale.Request(req)
 		if err != nil {
 			return wrapperTimeOutError(err)
 		}
@@ -253,9 +255,6 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 				return
 			}
 
-			if tb.userAgent != "" {
-				req.Header.Set("user-agent", tb.userAgent)
-			}
 			req.Header.Set("referer", urlJoin(tb.api, "login"))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -263,7 +262,7 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 				log.Printf("login %s username: %s password: %s", api, username, password)
 			}
 
-			respnose, err := tb.client.Do(req)
+			respnose, err := tb.Request(req)
 			if err != nil {
 				tb.err = fmt.Errorf("login failed %w", err)
 				return
@@ -328,13 +327,8 @@ func (tb *TaleBook) getInfo() {
 		tb.err = wrapperTimeOutError(err)
 		return
 	}
-	if tb.cookie != "" {
-		req.Header.Set("cookie", tb.cookie)
-	}
-	if tb.userAgent != "" {
-		req.Header.Set("user-agent", tb.userAgent)
-	}
-	respnose, err := tb.client.Do(req)
+
+	respnose, err := tb.Request(req)
 	if err != nil {
 		tb.err = err
 		return

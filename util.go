@@ -10,14 +10,16 @@ import (
 	"strings"
 )
 
-const (
-	IllegalCharacters = `\/:*?"<>|`
-)
-
 func filename(resp *http.Response) string {
+	const (
+		IllegalCharacters = `\/:*?"<>|`
+	)
+
 	if dispos := resp.Header.Get("content-disposition"); dispos != "" {
 		if _, params, err := mime.ParseMediaType(dispos); err == nil {
 			if filename, ok := params["filename"]; ok {
+
+				// https://github.com/hellojukay/dl-talebook/issues/5
 				return removeChars(filename, IllegalCharacters)
 			}
 		}
@@ -27,7 +29,7 @@ func filename(resp *http.Response) string {
 
 func removeChars(s string, chars string) string {
 	for _, ch := range chars {
-		s = strings.ReplaceAll(s, string(ch), "")
+		s = strings.ReplaceAll(s, string(ch), " ")
 	}
 	return s
 }
