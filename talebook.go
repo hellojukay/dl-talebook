@@ -118,10 +118,10 @@ func (tale *TaleBook) retryReuquest(req *http.Request, count int) (*http.Respons
 	}
 	response, err := tale.client.Do(req)
 	if err != nil && tale.retry > 0 && IsTimeOutError(err) {
-		if count > tale.retry {
+		if count == tale.retry {
 			return nil, err
 		}
-		log.Printf("retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, 3)
+		log.Printf("retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
 		return tale.retryReuquest(req, count+1)
 	}
 	return response, err
