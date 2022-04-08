@@ -107,9 +107,9 @@ func (b Book) String() string {
 }
 
 func (tale *TaleBook) Request(req *http.Request) (*http.Response, error) {
-	return tale.doRequest(req, 0)
+	return tale.retryReuquest(req, 0)
 }
-func (tale *TaleBook) doRequest(req *http.Request, count int) (*http.Response, error) {
+func (tale *TaleBook) retryReuquest(req *http.Request, count int) (*http.Response, error) {
 	if tale.userAgent != "" {
 		req.Header.Set("User-Agent", tale.userAgent)
 	}
@@ -122,7 +122,7 @@ func (tale *TaleBook) doRequest(req *http.Request, count int) (*http.Response, e
 			return nil, err
 		}
 		log.Printf("retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, 3)
-		return tale.doRequest(req, count+1)
+		return tale.retryReuquest(req, count+1)
 	}
 	return response, err
 }
