@@ -11,16 +11,17 @@ import (
 )
 
 var (
-	userAgent  = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`
-	site       = `https://book.codefine.site:6870/`
-	cookie     = ""
-	dir        = "./"
-	timeout    = time.Duration(10) * time.Second
-	username   = ""
-	password   = ""
-	verbose    = false
-	startIndex = 0
-	version    = false
+	userAgent       = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`
+	site            = `https://book.codefine.site:6870/`
+	cookie          = ""
+	dir             = "./"
+	timeout         = time.Duration(10) * time.Second
+	username        = ""
+	password        = ""
+	verbose         = false
+	startIndex      = 0
+	version         = false
+	continueOnStart = false
 )
 
 func init() {
@@ -35,6 +36,7 @@ func init() {
 	flag.DurationVar(&timeout, "timeout", timeout, "http timeout")
 	flag.BoolVar(&verbose, "verbose", false, "show debug log")
 	flag.BoolVar(&version, "version", false, "show progream version")
+	flag.BoolVar(&continueOnStart, "continue", true, "continue an incomplete download")
 
 	flag.IntVar(&startIndex, "start-index", startIndex, "start book id")
 
@@ -53,6 +55,7 @@ func main() {
 		WithTimeOutOption(timeout),
 		WithStartIndex(startIndex),
 		WithLoginOption(username, password),
+		WithContinue(continueOnStart),
 	)
 
 	if err != nil {

@@ -10,8 +10,10 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -59,6 +61,7 @@ type TaleBook struct {
 	serverInfo ServerInfo
 	MaxIndex   int
 	Total      int
+	exit       func()
 }
 
 type Book struct {
@@ -217,6 +220,28 @@ func NewTableBook(site string, opstions ...func(*TaleBook)) (*TaleBook, error) {
 
 	tb.getInfo()
 
+	// try to recovery from last download action
+	if tb.exit != nil {
+
+		index, err := tryReadHistoryIndex(tb.api)
+		if tb.verbose {
+			log.Printf(err.Error())
+		}
+		if tb.index == 0 && index != 0 {
+			log.Printf("resume download from last id %d, resuming", index)
+			tb.index = index
+		}
+
+		// save download index before exit
+		c := make(chan os.Signal)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			tb.exit()
+			os.Exit(1)
+		}()
+	}
+
 	return tb, tb.err
 }
 
@@ -306,6 +331,17 @@ func WithVerboseOption(verbose bool) func(*TaleBook) {
 func WithStartIndex(index int) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		tb.index = index
+	}
+}
+
+func WithContinue(c bool) func(*TaleBook) {
+	return func(tb *TaleBook) {
+		if c {
+			tb.exit = func() {
+				saveDownloadHistory(*tb)
+			}
+		}
+
 	}
 }
 func (tb *TaleBook) LastIndex() int {
