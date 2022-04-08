@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	IllegalCharacters = `\/:*?"<>|`
-)
-
 func filename(resp *http.Response) string {
 
 	if dispos := resp.Header.Get("content-disposition"); dispos != "" {
@@ -28,15 +24,21 @@ func filename(resp *http.Response) string {
 }
 
 func tosafeFileName(name string) string {
-	return removeChars(name, IllegalCharacters)
+	empty := " "
+	replacer := strings.NewReplacer(
+		`\`, empty,
+		`/`, empty,
+		`:`, empty,
+		`*`, empty,
+		`?`, empty,
+		`"`, empty,
+		`<`, empty,
+		`>`, empty,
+		`|`, empty,
+	)
+	return replacer.Replace(name)
+}
 
-}
-func removeChars(s string, chars string) string {
-	for _, ch := range chars {
-		s = strings.ReplaceAll(s, string(ch), " ")
-	}
-	return s
-}
 func urlJoin(base string, pathes ...string) string {
 	for _, path := range pathes {
 		base = strings.Trim(base, "/")
