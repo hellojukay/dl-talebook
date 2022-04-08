@@ -169,6 +169,9 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		if name == "" {
 			name = b.Book.Title + "." + strings.ToLower(file.Format)
 		}
+		// https://github.com/hellojukay/dl-talebook/issues/5
+		name = tosafeFileName(name)
+
 		filepath := filepath.Join(dir, name)
 		if info, err := os.Stat(filepath); err == nil {
 			if file.Size == info.Size() {

@@ -16,7 +16,7 @@ const (
 func saveDownloadHistory(tb TaleBook) {
 	u, _ := url.Parse(tb.api)
 
-	if err := os.WriteFile(logfile, []byte(fmt.Sprintf("%s %d", u.Host, tb.index)), 0644); err != nil {
+	if err := os.WriteFile(logfile, []byte(fmt.Sprintf("%s %d", u.Host, tb.index-1)), 0644); err != nil {
 		log.Printf("warning: can not write dl-download infromat to .dl-download.log %s", err)
 	}
 }
