@@ -3,10 +3,8 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"os"
-	"runtime/debug"
 	"time"
 )
 
@@ -85,11 +83,5 @@ func main() {
 			continue
 		}
 		log.Printf("[%d/%d] downloading %s successed", book.Book.ID, tale.LastIndex(), book.String())
-	}
-}
-
-func PrintVersion() {
-	if info, ok := debug.ReadBuildInfo(); ok {
-		fmt.Printf("%s", info.Main.Version)
 	}
 }
