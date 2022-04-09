@@ -121,7 +121,7 @@ func (tale *TaleBook) retryReuquest(req *http.Request, count int) (*http.Respons
 		if count == tale.retry {
 			return nil, err
 		}
-		log.Printf("retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
+		log.Printf("timeout , retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
 		return tale.retryReuquest(req, count+1)
 	}
 	return response, err
