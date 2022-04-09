@@ -74,6 +74,7 @@ func main() {
 				log.Printf("%s [exit]", err.Error())
 				if tale.exit != nil {
 					tale.exit()
+					os.Exit(0)
 				}
 			}
 			log.Printf("%s [skiped]", err.Error())

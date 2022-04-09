@@ -1,3 +1,4 @@
 dl-talebook.exe
 dl-talebook
 *.log
+.dl-download.json
