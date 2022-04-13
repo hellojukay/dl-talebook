@@ -166,7 +166,10 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		} else {
 			downloadURL = urlJoin(tale.api, file.Href)
 		}
-		log.Printf("download %s", downloadURL)
+		if tale.verbose {
+			log.Printf("download %s", downloadURL)
+		}
+		
 		req, err := http.NewRequest(http.MethodGet, downloadURL, nil)
 		if err != nil {
 			return err
