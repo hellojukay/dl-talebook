@@ -49,15 +49,10 @@ func urlJoin(base string, pathes ...string) string {
 }
 
 func wrapperTimeOutError(err error) error {
-	switch e := err.(type) {
-	case net.Error:
-		if e.Timeout() {
-			return fmt.Errorf("timeout")
-		}
-		return err
-	default:
-		return err
+	if IsTimeOutError(err) {
+		return fmt.Errorf("timeout")
 	}
+	return err
 }
 
 func IsTimeOutError(err error) bool {
