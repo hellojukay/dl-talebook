@@ -107,9 +107,9 @@ func (b Book) String() string {
 }
 
 func (tale *TaleBook) Request(req *http.Request) (*http.Response, error) {
-	return tale.retryReuquest(req, 0)
+	return tale.tryRequest(req, 0)
 }
-func (tale *TaleBook) retryReuquest(req *http.Request, count int) (*http.Response, error) {
+func (tale *TaleBook) tryRequest(req *http.Request, count int) (*http.Response, error) {
 	if tale.userAgent != "" {
 		req.Header.Set("User-Agent", tale.userAgent)
 	}
@@ -122,7 +122,7 @@ func (tale *TaleBook) retryReuquest(req *http.Request, count int) (*http.Respons
 			return nil, err
 		}
 		log.Printf("timeout , retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
-		return tale.retryReuquest(req, count+1)
+		return tale.tryRequest(req, count+1)
 	}
 	return response, err
 }
@@ -160,7 +160,16 @@ func (tale *TaleBook) Next() (*Book, error) {
 
 func (tale *TaleBook) Download(b *Book, dir string) error {
 	for _, file := range b.Book.Files {
-		downloadURL := urlJoin(tale.api, file.Href)
+		var downloadURL string
+		if strings.HasPrefix(file.Href, "https://") || strings.HasPrefix(file.Href, "http://") {
+			downloadURL = file.Href
+		} else {
+			downloadURL = urlJoin(tale.api, file.Href)
+		}
+		if tale.verbose {
+			log.Printf("download %s", downloadURL)
+		}
+		
 		req, err := http.NewRequest(http.MethodGet, downloadURL, nil)
 		if err != nil {
 			return err
