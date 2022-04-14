@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	logfile = `.dl-download.json`
+	logfile = `~/.dl-download.json`
 )
 
 func saveDownloadHistory(tb TaleBook) {
