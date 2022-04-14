@@ -158,7 +158,7 @@ func (tale *TaleBook) Next() (*Book, error) {
 	return &book, nil
 }
 
-func (tale *TaleBook) Download(b *Book, dir string) error {
+func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 	for _, file := range b.Book.Files {
 		var downloadURL string
 		if strings.HasPrefix(file.Href, "https://") || strings.HasPrefix(file.Href, "http://") {
@@ -169,7 +169,7 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		if tale.verbose {
 			log.Printf("download %s", downloadURL)
 		}
-		
+
 		req, err := http.NewRequest(http.MethodGet, downloadURL, nil)
 		if err != nil {
 			return err
@@ -212,11 +212,21 @@ func (tale *TaleBook) Download(b *Book, dir string) error {
 		if err != nil {
 			fh.Close()
 			os.Remove(filepath)
-			return wrapperTimeOutError(err)
+			if IsTimeOutError(err) {
+				if tale.retry == count {
+					return err
+				}
+				log.Printf("timeout , retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
+				return tale.tryDownload(b, dir, count+1)
+			}
+			return err
 		}
 		fh.Close()
 	}
 	return nil
+}
+func (tale *TaleBook) Download(b *Book, dir string) error {
+	return tale.tryDownload(b, dir, 0)
 }
 
 func NewTableBook(site string, opstions ...func(*TaleBook)) (*TaleBook, error) {

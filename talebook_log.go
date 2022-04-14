@@ -6,13 +6,16 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 )
 
 const (
-	logfile = `~/.dl-download.json`
+	name = `.dl-tabebook.json`
 )
 
 func saveDownloadHistory(tb TaleBook) {
+	home, _ := os.UserHomeDir()
+	logfile := filepath.Join(home, name)
 	u, _ := url.Parse(tb.api)
 
 	data, err := readjsonMap(logfile)
@@ -31,6 +34,8 @@ func saveDownloadHistory(tb TaleBook) {
 }
 
 func readjsonMap(filename string) (map[string]int, error) {
+	home, _ := os.UserHomeDir()
+	logfile := filepath.Join(home, name)
 	content, err := os.ReadFile(logfile)
 	if err != nil {
 		return nil, err
@@ -40,6 +45,8 @@ func readjsonMap(filename string) (map[string]int, error) {
 	return data, err
 }
 func tryReadHistoryIndex(api string) (int, error) {
+	home, _ := os.UserHomeDir()
+	logfile := filepath.Join(home, name)
 	data, err := readjsonMap(logfile)
 	if err != nil {
 		return 0, err
