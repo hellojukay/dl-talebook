@@ -24,7 +24,7 @@ func saveDownloadHistory(tb TaleBook) {
 		data = make(map[string]int)
 	}
 	data[u.Host] = tb.index - 1
-	content, err := json.Marshal(data)
+	content, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		log.Printf("warn gen history json failed")
 	}
