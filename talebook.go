@@ -50,6 +50,7 @@ type ServerInfo struct {
 	} `json:"books"`
 	Msg string `json:"msg"`
 }
+
 type TaleBook struct {
 	api        string
 	index      int
@@ -121,32 +122,40 @@ func (tale *TaleBook) tryRequest(req *http.Request, count int) (*http.Response, 
 		if count == tale.retry {
 			return nil, err
 		}
+
 		log.Printf("timeout , retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
+
 		return tale.tryRequest(req, count+1)
 	}
 	return response, err
 }
+
 func (tale *TaleBook) Next() (*Book, error) {
 	tale.index++
 	if tale.index > tale.LastIndex() {
 		return nil, NO_MORE_BOOK_ERROR
 	}
 	var api = urlJoin(tale.api, "api", "book", fmt.Sprintf("%d", tale.index))
+
 	if tale.verbose {
 		log.Printf("feth book from %s", api)
 	}
+
 	req, err := http.NewRequest(http.MethodGet, api, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	response, err := tale.Request(req)
 	if err != nil {
 		return nil, err
 	}
+
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("%s", response.Status)
 	}
+
 	var book Book
 	decoder := json.NewDecoder(response.Body)
 	if err = decoder.Decode(&book); err != nil {
@@ -166,6 +175,7 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 		} else {
 			downloadURL = urlJoin(tale.api, file.Href)
 		}
+
 		if tale.verbose {
 			log.Printf("download %s", downloadURL)
 		}
@@ -181,7 +191,6 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 		}
 
 		defer response.Body.Close()
-
 		if response.StatusCode != http.StatusOK {
 			return fmt.Errorf("%s %s", downloadURL, response.Status)
 		}
@@ -190,6 +199,7 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 		if name == "" {
 			name = b.Book.Title + "." + strings.ToLower(file.Format)
 		}
+
 		// https://github.com/hellojukay/dl-talebook/issues/5
 		name = tosafeFileName(name)
 
@@ -198,6 +208,7 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 			if file.Size == info.Size() {
 				return fmt.Errorf("%s %w", filepath, os.ErrExist)
 			} else {
+
 				log.Printf("expected file size %d, actual file size %d, so removing %s, ", file.Size, info.Size(), filepath)
 				if err = os.Remove(filepath); err != nil {
 					return err
@@ -208,6 +219,7 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 		if err != nil {
 			return err
 		}
+
 		_, err = io.Copy(fh, response.Body)
 		if err != nil {
 			fh.Close()
@@ -216,6 +228,7 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 				if tale.retry == count {
 					return err
 				}
+
 				log.Printf("timeout , retry %s://%s%s [%d/%d]", req.URL.Scheme, req.Host, req.URL.Path, count+1, tale.retry)
 				return tale.tryDownload(b, dir, count+1)
 			}
@@ -225,6 +238,7 @@ func (tale *TaleBook) tryDownload(b *Book, dir string, count int) error {
 	}
 	return nil
 }
+
 func (tale *TaleBook) Download(b *Book, dir string) error {
 	return tale.tryDownload(b, dir, 0)
 }
@@ -290,11 +304,13 @@ func WithRetry(times int) func(*TaleBook) {
 		tb.retry = times
 	}
 }
+
 func WithUserAgentOption(uagent string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		tb.userAgent = userAgent
 	}
 }
+
 func WithUserCookieOption(cookie string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		if cookie != "" {
@@ -302,6 +318,7 @@ func WithUserCookieOption(cookie string) func(*TaleBook) {
 		}
 	}
 }
+
 func WithLoginOption(user string, password string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		if (user != "") && (password != "") {
@@ -367,6 +384,7 @@ func WithVerboseOption(verbose bool) func(*TaleBook) {
 		tb.verbose = verbose
 	}
 }
+
 func WithStartIndex(index int) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		tb.index = index
@@ -383,6 +401,7 @@ func WithContinue(c bool) func(*TaleBook) {
 
 	}
 }
+
 func (tb *TaleBook) LastIndex() int {
 	var m = tb.Total
 	for _, book := range tb.serverInfo.Books {
@@ -392,6 +411,7 @@ func (tb *TaleBook) LastIndex() int {
 	}
 	return m
 }
+
 func (tb *TaleBook) getInfo() {
 
 	api := urlJoin(tb.api, "api/recent")
@@ -406,17 +426,20 @@ func (tb *TaleBook) getInfo() {
 		tb.err = err
 		return
 	}
+
 	defer respnose.Body.Close()
 	if respnose.StatusCode != http.StatusOK {
 		tb.err = fmt.Errorf("%s %s", api, respnose.Status)
 		return
 	}
+
 	var info ServerInfo
 	decoder := json.NewDecoder(respnose.Body)
 	if err = decoder.Decode(&info); err != nil {
 		tb.err = err
 		return
 	}
+
 	tb.serverInfo = info
 	tb.Total = info.Total
 }

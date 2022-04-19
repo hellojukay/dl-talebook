@@ -8,8 +8,10 @@ sub command_exsits {
     my $exit = system("which $cmd > /dev/null 2>&1");
     return $exit == 0;
 }
+
 $ENV{PATH} .= "/home/runner/go/bin/";
 $ENV{CGO_ENABLED} = 0;
+
 if(command_exsits('gox')) {
     print("[INFO] gox command found , now run gox build.\n");
     my $arch="darwin/arm64 darwin/amd64 linux/386 linux/amd64 windows/amd64 windows/386";

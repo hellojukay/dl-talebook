@@ -44,6 +44,7 @@ func readjsonMap(filename string) (map[string]int, error) {
 	err = json.Unmarshal(content, &data)
 	return data, err
 }
+
 func tryReadHistoryIndex(api string) (int, error) {
 	home, _ := os.UserHomeDir()
 	logfile := filepath.Join(home, name)

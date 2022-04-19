@@ -47,6 +47,7 @@ func init() {
 		os.Exit(0)
 	}
 }
+
 func main() {
 	tale, err := NewTableBook(site,
 		WithRetry(retry),
@@ -83,6 +84,7 @@ func main() {
 			log.Printf("[%d/%d] downloading %s, %s [skiped]", book.Book.ID, tale.LastIndex(), book.Book.Title, err)
 			continue
 		}
+
 		log.Printf("[%d/%d] downloading %s successed", book.Book.ID, tale.LastIndex(), book.String())
 	}
 }
