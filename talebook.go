@@ -338,7 +338,7 @@ func WithLoginOption(user string, password string) func(*TaleBook) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			if tb.verbose {
-				log.Printf("login %s username: %s password: %s", api, username, password)
+				log.Printf("login %s username: %s password: %s", api, user, password)
 			}
 
 			respnose, err := tb.Request(req)
