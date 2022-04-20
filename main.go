@@ -52,7 +52,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("%d books retrieved on server %s", tale.Total, site)
+	log.Printf("%d books retrieved on server %s", tale.Total, *site)
 
 	for {
 		book, err := tale.Next()
