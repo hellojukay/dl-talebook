@@ -9,55 +9,43 @@ import (
 )
 
 var (
-	userAgent       = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`
-	site            = `https://book.codefine.site:6870/`
-	cookie          = ""
-	dir             = "./"
-	timeout         = time.Duration(10) * time.Second
-	username        = ""
-	password        = ""
-	verbose         = false
-	startIndex      = 0
-	version         = false
-	continueOnStart = false
-	retry           = 3
+	userAgent       = flag.String("user-agent", `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`, "http user-agent")
+	site            = flag.String("site", `https://book.codefine.site:6870/`, "tabebook web site")
+	cookie          = flag.String("cookie", "", "http cookie")
+	dir             = flag.String("dir", "./", "data dir")
+	timeout         = flag.Duration("timeout", time.Duration(10)*time.Second, "http timeout")
+	username        = flag.String("username", "", "username")
+	password        = flag.String("password", "", "password")
+	verbose         = flag.Bool("verbose", false, "show debug log")
+	startIndex      = flag.Int("start-index", 0, "start book id")
+	version         = flag.Bool("version", false, "show progream version")
+	continueOnStart = flag.Bool("continue", true, "continue an incomplete download")
+	retry           = flag.Int("retry", 3, "timeout retries count")
 )
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	flag.StringVar(&cookie, "cookie", cookie, "http cookie")
-	flag.StringVar(&username, "username", username, "username")
-	flag.StringVar(&password, "password", password, "password")
-	flag.StringVar(&site, "site", site, "tabebook web site")
-	flag.StringVar(&dir, "dir", dir, "data dir")
-	flag.StringVar(&userAgent, "user-agent", userAgent, "http userAgent")
-	flag.DurationVar(&timeout, "timeout", timeout, "http timeout")
-	flag.BoolVar(&verbose, "verbose", false, "show debug log")
-	flag.BoolVar(&version, "version", false, "show progream version")
-	flag.BoolVar(&continueOnStart, "continue", true, "continue an incomplete download")
+	if !flag.Parsed() {
+		flag.Parse()
+	}
 
-	flag.IntVar(&startIndex, "start-index", startIndex, "start book id")
-	flag.IntVar(&retry, "retry", retry, "timeout retries")
-
-	flag.Parse()
-
-	if version {
+	if *version {
 		PrintVersion()
 		os.Exit(0)
 	}
 }
 
 func main() {
-	tale, err := NewTableBook(site,
-		WithRetry(retry),
-		WithVerboseOption(verbose),
-		WithUserCookieOption(cookie),
-		WithUserAgentOption(userAgent),
-		WithTimeOutOption(timeout),
-		WithStartIndex(startIndex),
-		WithLoginOption(username, password),
-		WithContinue(continueOnStart),
+	tale, err := NewTableBook(*site,
+		WithRetry(*retry),
+		WithVerboseOption(*verbose),
+		WithUserCookieOption(*cookie),
+		WithUserAgentOption(*userAgent),
+		WithTimeOutOption(*timeout),
+		WithStartIndex(*startIndex),
+		WithLoginOption(*username, *password),
+		WithContinue(*continueOnStart),
 	)
 
 	if err != nil {
@@ -80,7 +68,7 @@ func main() {
 			continue
 		}
 
-		if err = tale.Download(book, dir); err != nil {
+		if err = tale.Download(book, *dir); err != nil {
 			log.Printf("[%d/%d] downloading %s, %s [skiped]", book.Book.ID, tale.LastIndex(), book.Book.Title, err)
 			continue
 		}

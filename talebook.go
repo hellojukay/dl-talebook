@@ -305,7 +305,7 @@ func WithRetry(times int) func(*TaleBook) {
 	}
 }
 
-func WithUserAgentOption(uagent string) func(*TaleBook) {
+func WithUserAgentOption(userAgent string) func(*TaleBook) {
 	return func(tb *TaleBook) {
 		tb.userAgent = userAgent
 	}
