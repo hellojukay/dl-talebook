@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Ltime)
 
 	if !flag.Parsed() {
 		flag.Parse()
