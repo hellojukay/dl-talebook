@@ -22,6 +22,6 @@ jobs:
         run: |
           go install github.com/mitchellh/gox@latest
           mkdir dist
-          perl build.pl
+          perl .github/build.pl
       - name: Test
         run: go test -v  util.go util_test.go
