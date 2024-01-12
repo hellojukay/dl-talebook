@@ -110,6 +110,7 @@ func (b Book) String() string {
 func (tale *TaleBook) Request(req *http.Request) (*http.Response, error) {
 	return tale.tryRequest(req, 0)
 }
+
 func (tale *TaleBook) tryRequest(req *http.Request, count int) (*http.Response, error) {
 	if tale.userAgent != "" {
 		req.Header.Set("User-Agent", tale.userAgent)
