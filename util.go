@@ -12,7 +12,6 @@ import (
 )
 
 func filename(resp *http.Response) string {
-
 	if dispos := resp.Header.Get("content-disposition"); dispos != "" {
 		if _, params, err := mime.ParseMediaType(dispos); err == nil {
 			if filename, ok := params["filename"]; ok {
